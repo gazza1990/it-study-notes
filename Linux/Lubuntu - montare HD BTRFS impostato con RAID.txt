@@ -1,0 +1,37 @@
+I sistemi usati per creare queste istruzioni sono:
+- PC con Windows
+- Programma Virtualbox
+- VM Lubuntu
+
+Istruzioni:
+1. Collegare HD a PC
+2. Accendere VM
+3. Passare controllo USB a VM
+4. Individuare la partizione di interesse con "fdisk -l"
+5. Assemblare il RAID: 
+	sudo mdadm --assemble --run /dev/md0 /dev/<partizione di interesse> --force
+6. Creare una cartella in /mnt da usare per montare il disco
+	sudo mkdir /mnt/cartellaAppoggio
+7. Provare a montare il disco
+	sudo mount /dev/md0 /mnt/cartellaAppoggio
+8. Se non funziona per errore su LVM2, verificare se presente un VG montato su /dev/md0
+	sudo vgdisplay
+9. Se risulta un VG montato su /dev/md0, verificare l'esistenza di un LV
+	sudo lvdisplay
+10. Se esiste un LV della dimensione che ci aspettiamo e che fa parte del VG precedente, montarlo usando il LV Path
+	sudo mount /dev/vg1/volume_1 /mnt/cartellaAppoggio
+11. A questo punto si potrà navigare nei files presenti in /mnt/cartellaAppoggio
+
+... Lavoro sul Disco ...
+
+12. Una volta terminati i lavori, smontare il FS
+	sudo umount /mnt/nasdisk
+13. Disattivare il VG (se presente)
+	sudo vgchange -a n <Nome VG>
+14. Disassemblare l'array
+	sudo mdadm --stop /dev/md0
+15 Rimuovere il drive (potrebbe rispondere che non ci sono dispositivi)
+	sudo mdadm --fail /dev/<Partizione da rimuovere> --remove /dev/<Partizione da rimuovere>
+16. Pulire il superblock
+	sudo mdadm --zero-superblock /dev/<Partizione da rimuovere>
+17. Rimuovere da VM il disco USB
