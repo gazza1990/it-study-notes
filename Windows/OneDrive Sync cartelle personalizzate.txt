@@ -1,0 +1,12 @@
+OneDrive, di default, sincronizza le cartelle Desktop, Immagini, Documenti e tutto ciò che si trova nella cartella "OneDrive".
+Per sincronizzare altre cartelle senza doverle spostare nella cartella OneDrive si può creare una "Directory Junction" che è una
+specie di Hard Link per le cartelle che consente la sincronizzazione del contenuto della cartella linkata.
+
+Il comando è: mklink /j <link> <target>
+Un esempio: mklink /j "C:\Users\administrator\OneDrive - Pedrini Spa\D_LabLocal" "D:\LabLocal"
+
+Da OneDrive è poi possibile scegliere se mantenere le cartelle solo Online oppure se mantenerele anche sul Dispositivo dalle
+opzioni del menu contestuale (tasto dx del mouse). Se le opzioni relative a OneDrive dovessero essere assenti in questo menu,
+provare a reinstallare OneDrive eseguendo questo comando da cmd: "OneDriveSetup.exe /allusers"
+
+https://learn.microsoft.com/it-it/sharepoint/per-machine-installation

@@ -1,0 +1,11 @@
+INSTALLAZIONE WIN11 SENZA TPM 2.0
+- Avviare USB Bootable con Windows 11
+- Quando si arriva al fallimento dell'installazione per via dei requisiti cliccare sulla X per uscire
+- Cliccare WIN+F10 (x Aprire CMD)
+- Aprire Regedit
+- Andare in HLM\SYSTEM\Setup
+- Creare nuova chiave (cartella) "LabConfig"
+- Creare nuove voci DWORD:
+	- BypassTPMCheck e impostarla a 1
+	- BypassSecureBoot e impostarla a 1
+- Tornare indietro e cliccare su "Installa"

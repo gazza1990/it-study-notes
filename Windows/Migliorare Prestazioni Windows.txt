@@ -1,0 +1,18 @@
+SUGGERIMENTI PER INCREMENTARE LE PRESTAZIONI DI WINDOWS
+
+Disabilitare le Applicazioni che si avviano in automatico
+Impostazioni > Privacy > App in background
+Impostazioni > Sitema > Informazioni > Impostazioni di Sistema Avanzate > Avanzate > Impostazioni (Prestazioni) > Attivare Regola per prestazioni migliori...
+Impostazioni > Sitema > Informazioni > Impostazioni di Sistema Avanzate > Avanzate > Impostazioni (Prestazioni) > Avanzate > Cambia > Attivare Gestisci automaticamente...
+Impostazioni > Sitema > Informazioni > Impostazioni di Sistema Avanzate > Avanzate > Impostazioni (Prestazioni) > Avanzate > Cambia > Mettere in Custom (Manuale) ed aumentare le dimensioni del file di paging
+Impostazioni > Sistema > Archiviazione > File temporanei > Selezionare e "Rimuovi Files"
+EVITARE LA DEFRAMMENTAZIONE SE DISCO SSD
+Aggiornare Windows
+Opzioni risparmio energia > Selezionare "Prestazioni Elevate" sotto "Nascondi combinazioni aggiuntive"
+Impostazioni > Ricerca > Ricerca in Windows > Attivare "Rispetta le impostazioni della modalità risparmio energia del dispositivo" (Facoltativa, da vedere reale funzionamento)
+Impostazioni > Ricerca > Ricerca in Windows > Impostazioni avanzate dell'indicizzatore ricerca > Modifica > Mostra tutti i percorsi > Deselezionare tutto > Ok > Chiudi (le ricerche risulteranno più lente)
+Riparare Windows: DISM /Online /Cleanup-Image /Restorehealth
+Riparare Windows: sfc /scannow
+
+Alcuni link utili per migliorare la guida:
+https://www.reddit.com/r/lowendgaming/comments/i1q2hk/how_to_actually_optimize_windows_10_for/

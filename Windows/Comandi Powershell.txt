@@ -1,0 +1,8 @@
+# Elenco pacchetti installati
+Get-AppxPackage -allusers | Select Name, packageFullname
+
+# Rimuovere pacchetti (tipo il solitario)
+Get-AppxPackage *Solitaire* -allusers | Remove-Appxpackage -allusers
+
+---------------------------------------------
+
