@@ -1,0 +1,13 @@
+Scaricare il tool iperf3 e metterlo sul Filesystem dei PC che
+si vogliono utilizzare per il test della velocità
+
+Su entrambi i PC eseguire iperf3 da cmd
+
+Computer Server:
+iperf3 -s
+
+Computer Client:
+iperf3 -c <IP_SERVER> -t 20 	# Upload verso il Server
+iperf3 -c <IP_SERVER> -t 20 -R	# Download dal Server
+
+
