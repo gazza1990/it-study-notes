@@ -1,0 +1,16 @@
+# CRIPTARE IL SORGENTE
+# pyarmor gen <percorso_al_sorgente> 				- Questo genera un file .py offuscato
+# pyinstaller <percorso_al_sorgente_offiscato> --onefile 	- Questo genera un file .exe
+# In questo modo il codice è abbastanza protetto dal reverse engineering
+# Probabilmente è sufficiente usare pyarmor che si lega a pyinstaller, utilizzando uno dei seguenti comandi:
+# pyarmor pack <percorso_al_sorgente> --onefile
+# pyarmor pack -e <percorso_al_sorgente> --onefile
+# pyarmor pack --clean -e "--onefile " <percorso_al_sorgente>
+# pyarmor pack -e "--onefile --windowed --noconsole" <percorso_al_sorgente>
+#
+# Si può anche provare un altro offuscatore, come pyminifier 
+
+Eseguire lo script da linea di comando con i seguenti argomenti:
+
+-c <password> <chiave> 		Restituisce la password criptata con la chiave (se chiave non specificata usa quella di default)
+-d <passwordCriptata> <chiave>	Restituisce la password in chiaro (se chiave non specificata usa quella di default)
