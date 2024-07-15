@@ -1,0 +1,24 @@
+/* remove background-image from all pages, but login page */
+body:not(#body-login)::before {
+    content: " ";
+    background-color: white;
+    opacity: 0.5;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+
+}
+
+body:not(#body-login) #header::before {
+    content: " ";
+    background-color: black;
+    opacity: 0.5;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    height: auto;
+}

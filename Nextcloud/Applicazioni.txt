@@ -1,0 +1,37 @@
+### Eventuali da Aggiungere
+Brute-force settings
+Custom CSS
+External storage support
+LDAP user and group backend
+Two-Factor TOTP Provider
+
+### Presenti di Default
+Activity
+Collaborative tags
+Comments
+Contacts Interaction
+Dashboard
+Deleted files
+Federation
+File reminders
+File sharing
+Files download limit
+First run wizard
+Log reader
+Monitoring
+Nextcloud announcements
+Notifications
+Password policy
+PDF viewer
+Photos
+Privacy
+Reccomendations
+Related Resources
+Share by email
+Support
+Teams
+Text
+Usage survey
+User status
+Versions
+Weather status
