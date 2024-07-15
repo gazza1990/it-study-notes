@@ -1,0 +1,6 @@
+DISM.exe /Online /Cleanup-image /Restorehealth
+sfc /scannow
+Eseguire Pulizia ccCleaner
+
+bitsadmin /list
+bitsadmin /reset
