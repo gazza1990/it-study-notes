@@ -1324,3 +1324,208 @@ Questo è un build multi-stadio. Il primo stadio viene usato per il build e l'in
 - Dalla riga 18 alla 20, impostiamo utente predefinito su `node`, creiamo la cartella `/home/node/app` e la impostiamo come `WORKDIR`.
 - Nella riga 22, copiamo tutti i file del progetto e nella riga 23 copiamo la cartella `node_modules` dallo stadio `builder`. Questa cartella contiene tutte le dipendenze necessarie per eseguire l'applicazione.
 - Nella riga 25, definiamo il comando di default.
+
+Eseguire quindi il build dell'immagine
+
+```bash
+docker image build --tag notes-api .
+```
+
+Prima di eseguire un container usando questa immagine, assicurarsi che il container del database sia in esecuzione e collegato a `notes-api-network`.
+
+```bash
+docker containtaer inspect notes-db
+```
+
+Il precedente comando restituisce un output in formato JSON dove si possono trovare diverse informazioni fra cui lo stato di esecuzione del container, i volumi utilizzati e le reti alle quali è connesso.
+
+Se il risultato in inspect è corretto (`notes-db` è in esecuzione, utilizza il volume `notes-db-data` ed è collegato alla rete bridge `notes-api-network`), eseguiamo un nuovo container.
+
+```bash
+docker container run \
+    --detach \
+    --name=notes-api \
+    --env DB_HOST=notes-db \
+    --env DB_DATABASE=notesdb \
+    --env DB_PASSWORD=secret \
+    --publish=3000:3000 \
+    --network=notes-api-network \
+    notes-api
+```
+
+L'applicazione `notes-api` richiede di impostare tre variabili di ambiente:
+
+- `DB_HOST` - È l'host del server del database. Dato che sia il database del server che l'API sono collegati alla stessa rete bridge definita da un utente, il server del database può essere indicato usando il nome del suo container, che in questo caso è `notes-db`.
+- `DB_DATABASE` - Il database che userà questa API. [Eseguendo il server del database](https://www.freecodecamp.org/italian/news/il-manuale-docker/#come-eseguire-il-server-del-database), abbiamo impostato il nome predefinito su `notesdb` usando la variabile di ambiente `POSTGRES_DB`. La useremo qui.
+- `DB_PASSWORD` - La password per connettere il database. Anche questa è stata impostata nella sezione [Eseguire il server del database](https://www.freecodecamp.org/italian/news/il-manuale-docker/#come-eseguire-il-server-del-database), usando la variabile di ambiente `POSTGRES_PASSWORD`.
+
+Se il container è avviato e in esecuzione, navigando all'indirizzo http://127.0.0.1:3000/ bisognerebbe vedere l'API in azione.
+
+L'API ha 5 rotte in totale, che puoi vedere nel file `/notes-api/api/api/routes/notes.js`.
+
+Sebbene il container sia in esecuzione, c'è un'ultima cosa che devi fare prima di poterlo usare. Dovrai eseguire la migrazione del database necessaria per configurare le tabelle del database, e puoi farlo eseguendo il comando `npm run db:migrate` all'interno del container.
+
+### Come eseguire i comandi in un container in esecuzione
+
+Si utilizza il comando `exec`, quindi per eseguire la migrazione del database menzionata nella precedente sezione si usa il seguente comando.
+
+```bash
+docker container exec notes-api npm db:migrate
+```
+
+Se si volesse utilizzare un comando interattivo, bisogna specificare l'opzione `-it`. Di seguito un esempio
+
+```bash
+docker container exec -it notes-api sh
+```
+
+### Come scrivere degli script di gestione per Docker
+
+E' utile creare degli script per automatizzare delle operazioni manuali, specialmente su progetti multi-container e con diverse reti.
+
+Nella cartella `notes-api` del progetto ci sono quattro files utili a velocizzare alcune operazioni:
+
+- `boot.sh` - Usato per avviare i container, se esistono già.
+- `build.sh` - Crea ed esegue i container. All'occorrenza crea anche immagini, volumi e reti.
+- `destroy.sh` - Rimuove tutti i container, volumi e reti associati a un progetto.
+- `stop.sh` - Ferma tutti i container in esecuzione.
+
+C'è anche un `Makefile` che contiene quattro target chiamati `start`, `stop`, `build` e `destroy`, ognuno dei quali invoca i precedenti script di shell.
+
+Eseguire `make stop` dovrebbe fermare tutti i container in esecuzione sul tuo sistema. Eseguire `make destroy` dovrebbe fermare tutti i container e rimuovere tutto. Assicurati di lanciare gli script all'interno della cartella `notes-api`.
+
+Può essere che sia necessario dare il permesso di esecuzione agli script
+
+```bash
+chmod +x boot.sh build.sh destroy.sh shutdown.sh
+```
+
+## Comporre progetti con Docker-Compose
+
+[Docker Compose](https://docs.docker.com/compose/) è utile per la gestione di progetti multi-container.
+
+Secondo la [documentazione di Docker](https://docs.docker.com/compose/):
+
+> Compose è uno strumento per definire ed eseguire applicazioni multi-container in Docker. Con compose si utilizza un file YAML per configurare i servizi di un'applicazione. Poi, con un singolo comando, si creano e avviano tutti i servizi dalla configurazione.
+
+Sebbene Compose funzioni in tutti gli ambienti, è più incentrato sullo sviluppo e il collaudo. Usare Compose in un ambiente di produzione non è assolutamente consigliato.
+
+### Le basi di Docker Compose
+
+Andare nella cartella `notes-api/api` del progetto e creare un file `Dockerfile.dev` dove inserire il seguente codice
+
+```dockerfile
+# stage one
+FROM node:lts-alpine as builder
+
+# install dependencies for node-gyp
+RUN apk add --no-cache python make g++
+
+WORKDIR /app
+
+COPY ./package.json .
+RUN npm install
+
+# stage two
+FROM node:lts-alpine
+
+ENV NODE_ENV=development
+
+USER node
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
+
+COPY . .
+COPY --from=builder /app/node_modules /home/node/app/node_modules
+
+CMD [ "./node_modules/.bin/nodemon", "--config", "nodemon.json", "bin/www" ]
+```
+
+Il codice è quasi identico al `Dockerfile` con cui hai lavorato nella sezione precedente, eccetto per le seguenti tre differenze:
+
+- Nella riga 10, eseguiamo `npm install` invece di `npm run install --only=prod` perché vogliamo anche le dipendenze di sviluppo.
+- Nella riga 15, impostiamo la variabile di ambiente `NODE_ENV` su `development` invece di `production`.
+- Nella riga 24, usiamo uno strumento chiamato [nodemon](https://nodemon.io/) per ottenere la funzionalità di ricaricamento rapido per l'API.
+
+Sai già che questo progetto ha due container:
+
+- `notes-db` - Un server del database alimentato da PostgreSQL.
+- `notes-api` - Una API REST alimentata da Express.js
+
+Nel mondo di Compose, ogni container che costituisce l'applicazione è detto servizio. Il primo passo nel comporre un progetto multi-container è definire questi servizi.
+
+Proprio come il demone Docker utilizza un `Dockerfile` per il build delle immagini, Docker Compose usa un file `docker-compose.yaml` da cui legge le definizioni dei servizi.
+
+Vai nella cartella `notes-api` e crea un nuovo file `docker-compose.yaml`. Metti il seguente codice all'interno del file appena creato:
+
+```yaml
+version: "3.8"
+
+services: 
+    db:
+        image: postgres:12
+        container_name: notes-db-dev
+        volumes: 
+            - notes-db-dev-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: notesdb
+            POSTGRES_PASSWORD: secret
+    api:
+        build:
+            context: ./api
+            dockerfile: Dockerfile.dev
+        image: notes-api:dev
+        container_name: notes-api-dev
+        environment: 
+            DB_HOST: db ## same as the database service name
+            DB_DATABASE: notesdb
+            DB_PASSWORD: secret
+        volumes: 
+            - /home/node/app/node_modules
+            - ./api:/home/node/app
+        ports: 
+            - 3000:3000
+
+volumes:
+    notes-db-dev-data:
+        name: notes-db-dev-data
+```
+
+La prima riga rappresenta la versione di docker-compose usata.
+
+I blocchi in un file YAML sono definiti dall'indentazione. Esaminerò ogni blocco e spiegherò cosa fa.
+
+- Il blocco `services` contiene le definizioni per ognuno dei servizi o container nell'applicazione. `db` e `api` sono i due servizi che costituiscono questo progetto.
+- Il blocco `db` definisce un nuovo servizio nell'applicazione e contiene le informazioni necessarie per avviare il container. Ogni servizio richiede un'immagine predefinita o un `Dockerfile` per l'esecuzione di un container. Per il servizio `db` stiamo usando l'immagine ufficiale di PostgreSQL.
+- A differenza del servizio `db`, non esiste un'immagine di cui è già stato fatto il build per il servizio `api`. Quindi useremo il file `Dockerfile.dev`.
+- Il blocco `volumes` definisce ogni volume con nome necessario per ogni servizio. Al momento elenca solo il volume `notes-db-dev-data` usato dal servizio `db`.
+
+Ora che hai avuto una panoramica ad alto livello del file `docker-compose.yaml`, diamo un'occhiata più da vicino ai singoli servizi.
+
+- Sezione `services/db`
+  
+  - La chiave `image` contiene il repository e il tag dell'immagine usata per questo contenitore. Stiamo eseguendo l'immagine `postgres:12` per eseguire il container del database.
+  
+  - `container_name` indica il nome del container. Di default i container sono chiamati seguendo la sintassi `<nome directory progetto>_<nome servizio>`. Puoi sovrascriverlo usando `container_name`.
+  
+  - L'array `volumes` contiene la mappatura dei volumi per il servizio e supporta volumi con nome, volumi anonimi e bind mount. La sintassi `<sorgente>:<destinazione>` è identica a quella che hai già visto prima.
+  
+  - La mappa `environment` contiene i valori delle diverse variabili di ambiente necessarie per il servizio.
+
+- Sezione `services/api`
+  
+  - Il servizio `api` non ha un'immagine di cui è già stato fatto il build, ma possiede una configurazione di build. Sotto il blocco `build` definiamo il contesto e il nome del Dockerfile per il build di un'immagine. Ormai dovresti avere una buona comprensione del contesto e del Dockerfile, quindi non mi ci soffermerò oltre.
+  
+  - La chiave `image` contiene il nome dell'immagine di cui fare il build. Se non assegnato, all'immagine verrà dato un nome seguendo la sintassi `<nome directory progetto>_<nome servizio>`.
+  
+  - All'interno della mappa `environment`, la variabile `DB_HOST` dà prova di una funzionalità di Compose, ovvero che puoi fare riferimento a un altro servizio nella stessa applicazione usando il suo nome. Quindi, `db` sarà sostituito dall'indirizzo IP del container del servizio `api`. Le variabili `DB_DATABASE` e `DB_PASSWORD` devono corrispondere rispettivamente con `POSTGRES_DB` e `POSTGRES_PASSWORD` dalla definizione del servizio `db`.
+  
+  - Nella mappa `volumes`, puoi vedere descritti un volume anonimo e un bind mount. La sintassi è identica a quella che hai visto nelle sezionii precedenti.
+  
+  - La mappa `ports` definisce ogni port mapping. La sintassi, `<porta host>:<porta container>` è identica all'opzione `--publish` usata precedentemente.
+
+- Sezione `volumes`
+  
+  - Ogni volume con un nome usato in qualsiasi dei servizi deve essere definito qui. Se non definisci un nome, il volume sarà chiamato seguendo `<nome directory progetto>_<chiave volume>` dove, in questo caso, la chiave è `db-data`.
+
+### Come avviare i servizi con docker-compose
