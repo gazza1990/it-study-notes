@@ -1,0 +1,22 @@
+
+Verificare salute AD
+
+CMD (Vari aspetti rapido):
+DCDiag
+
+CMD (Vari aspetti):
+DCDiag /Test:DNS /e /v
+
+CMD (Sync and Replication):
+Repadmin /replsummary
+
+Powershell (Servizi e Dipendenze):
+$Services='DNS','DFS Replication','Intersite Messaging','Kerberos Key Distribution Center','NetLogon',’Active Directory Domain Services’
+ForEach ($Service in $Services) {Get-Service $Service | Select-Object Name, Status}
+
+Powershell (Detect unsecure LDAP binds):
+Get-WinEvent -FilterHashtable @{
+                LogName = 'Security'
+                    ID = 2889
+                }
+
